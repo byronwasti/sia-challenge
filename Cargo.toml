@@ -1,0 +1,7 @@
+[package]
+authors = ["Byron Wasti <byron.wasti@gmail.com>"]
+name = "sia-challenge"
+version = "0.1.0"
+
+[dependencies]
+rayon = "1.0.0"

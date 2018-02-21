@@ -5,3 +5,4 @@ version = "0.1.0"
 
 [dependencies]
 rayon = "1.0.0"
+structopt = "0.2.3"

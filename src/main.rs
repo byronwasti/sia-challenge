@@ -1,5 +1,21 @@
 extern crate rayon;
+#[macro_use]
+extern crate structopt;
+
 use rayon::prelude::*;
+use structopt::StructOpt;
+
+#[derive(StructOpt)]
+struct Opt {
+    #[structopt(help = "Seed for A Generator", default_value = "65")]
+    a_seed: u64,
+
+    #[structopt(help = "Seed for B Generator", default_value = "8921")]
+    b_seed: u64,
+
+    #[structopt(short = "c", long = "count", help = "Number of generated values to compare", default_value = "40000000")]
+    count: usize,
+}
 
 #[derive(Debug)]
 struct Generator {
@@ -28,22 +44,24 @@ impl Iterator for Generator {
 }
 
 fn main() {
+    let opt = Opt::from_args();
+
+    // Create generators using default factor + seed from command line options
     let a = 16807;
     let b = 48271;
+    let a = Generator::new(a, opt.a_seed);
+    let b = Generator::new(b, opt.b_seed);
 
-    let a = Generator::new(a, 65);
-    let b = Generator::new(b, 8921);
-
-    let count = 40_000_000;
-
-    let values_a: Vec<u16> = a.take(count)
+    // Collect values synchronously
+    let values_a: Vec<u16> = a.take(opt.count)
         .map(|x| (x & 0xFFFF) as u16)
         .collect();
 
-    let values_b: Vec<u16> = b.take(count)
+    let values_b: Vec<u16> = b.take(opt.count)
         .map(|x| (x & 0xFFFF) as u16)
         .collect();
 
+    // Compare values in parallel
     let count_match = values_a.par_iter()
         .zip(values_b.par_iter())
         .filter(|&(x, y)| x == y)
@@ -51,3 +69,4 @@ fn main() {
 
     println!("{}", count_match);
 }
+

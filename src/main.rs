@@ -1,8 +1,6 @@
-extern crate rayon;
 #[macro_use]
 extern crate structopt;
 
-use rayon::prelude::*;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -52,18 +50,9 @@ fn main() {
     let a = Generator::new(a, opt.a_seed);
     let b = Generator::new(b, opt.b_seed);
 
-    // Collect values synchronously
-    let values_a: Vec<u16> = a.take(opt.count)
+    let count_match = a.take(opt.count)
         .map(|x| (x & 0xFFFF) as u16)
-        .collect();
-
-    let values_b: Vec<u16> = b.take(opt.count)
-        .map(|x| (x & 0xFFFF) as u16)
-        .collect();
-
-    // Compare values in parallel
-    let count_match = values_a.par_iter()
-        .zip(values_b.par_iter())
+        .zip(b.take(opt.count).map(|x| (x & 0xFFFF) as u16))
         .filter(|&(x, y)| x == y)
         .count();
 
